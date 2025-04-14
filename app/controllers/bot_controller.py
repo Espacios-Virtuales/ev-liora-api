@@ -1,10 +1,14 @@
-from app.models.sheet_model import get_document_link
+from app.models.drive_model import DriveModel
+from app.services.auth_service import validate_token
 
-def process_message(mensaje):
-    mensaje = mensaje.lower()
+def process_request(data, token):
+    user = validate_token(token)
+    if not user:
+        return "Token inválido"
+
+    modelo = DriveModel(user["documento"])
+    mensaje = data.get("message", "").lower()
+
     if "documento" in mensaje:
-        return get_document_link("formato-123")
-    elif "hola" in mensaje:
-        return "¡Hola! Soy Liora. ¿En qué te puedo ayudar?"
-    else:
-        return "No entendí tu mensaje. ¿Puedes reformularlo?"
+        return modelo.get_data("formato-123")
+    return "No entendí tu mensaje."

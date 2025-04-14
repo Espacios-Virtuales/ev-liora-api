@@ -1,3 +1,3 @@
-# EV-Liora-API
+# EV-Liora-API (Escalable)
 
-Una API básica con Flask para recibir mensajes, consultar Google Sheets y responder vía Webhook.
+API Flask multicliente para consultas a documentos de Google Drive (migrable a base de datos).
