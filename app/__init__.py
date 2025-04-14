@@ -7,3 +7,15 @@ def create_app():
     app.register_blueprint(api_bp)
 
     return app
+
+from app.models.db_models import db
+from app.config import Config
+
+app.config.from_object(Config)
+db.init_app(app)
+
+from app.models.db_models import db
+from app.config import Config
+
+app.config.from_object(Config)
+db.init_app(app)
