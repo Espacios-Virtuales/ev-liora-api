@@ -1,11 +1,18 @@
-from flask import Blueprint, request
-from app.controllers.bot_controller import process_message
+# app/views/whatsapp_view.py
+from flask import Blueprint, request, jsonify
+from app.services.sheet_service import load_sheet_data, procesar_pregunta
 
 whatsapp_bp = Blueprint("whatsapp", __name__)
 
-@whatsapp_bp.route("/webhook", methods=["POST"])
-def webhook():
-    data = request.json
-    mensaje = data.get("message", "")
-    respuesta = process_message(mensaje)
-    return {"respuesta": respuesta}, 200
+@whatsapp_bp.route("/whatsapp", methods=["POST"])
+def recibir_mensaje():
+    data = request.get_json()
+    mensaje = data.get("mensaje", "")
+    usuario_id = data.get("usuario_id")  # este puede venir desde la API de WSP o interno
+
+    # Para prototipo usamos sheet fija por usuario
+    sheet_id = "TU_SHEET_ID_AQUI"  # o recuperado de la BDD si es dinámico
+    datos_respuestas = load_sheet_data(sheet_id)
+    respuesta = procesar_pregunta(mensaje, datos_respuestas)
+
+    return jsonify({"respuesta": respuesta}), 200
