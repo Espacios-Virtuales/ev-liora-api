@@ -3,3 +3,5 @@ __pycache__/
 .env
 credenciales.json
 .venv
+
+data-liora-dbc243002267.json
