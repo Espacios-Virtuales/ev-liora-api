@@ -1,25 +1,20 @@
-from app.services.auth_service import validate_token
-from app.services.sheet_service import load_sheet_data, procesar_pregunta
+from flask import Flask, request, jsonify
+from app.services.sheet_service import cargar_datos_hoja, procesar_pregunta
 
-def process_request(data, token):
-    user = validate_token(token)
-    if not user:
-        return "Token inválido"
+app = Flask(__name__)
 
-    mensaje = data.get("message", "").lower()
+@app.route('/responder', methods=['POST'])
+def responder():
+    data = request.get_json()
+    pregunta = data.get('pregunta')
+    documento_id = data.get('documento_id')
 
-    # Obtener el ID del documento asociado al usuario
-    sheet_id = user.get("documento")  # Asegúrate de que 'documento' contiene el ID de la hoja
-
-    if not sheet_id:
-        return "No se encontró el documento asociado al usuario."
+    if not pregunta or not documento_id:
+        return jsonify({'error': 'Faltan datos obligatorios'}), 400
 
     try:
-        # Cargar los datos de la hoja de cálculo
-        datos_respuestas = load_sheet_data(sheet_id)
+        sheet_data = cargar_datos_hoja(documento_id)
+        respuesta = procesar_pregunta(pregunta, sheet_data)
+        return jsonify({'respuesta': respuesta}), 200
     except Exception as e:
-        return f"Error al acceder al documento: {str(e)}"
-
-    # Procesar la pregunta y obtener la respuesta
-    respuesta = procesar_pregunta(mensaje, datos_respuestas)
-    return respuesta
+        return jsonify({'error': str(e)}), 500
