@@ -1,6 +1,6 @@
 # app/views/whatsapp_view.py
 from flask import Blueprint, request, jsonify
-from app.services.sheet_service import load_sheet_data, procesar_pregunta
+from app.services.sheet_service import cargar_datos_hoja, procesar_pregunta
 
 whatsapp_bp = Blueprint("whatsapp", __name__)
 
@@ -12,7 +12,7 @@ def recibir_mensaje():
 
     # Para prototipo usamos sheet fija por usuario
     sheet_id = "TU_SHEET_ID_AQUI"  # o recuperado de la BDD si es dinámico
-    datos_respuestas = load_sheet_data(sheet_id)
+    datos_respuestas = cargar_datos_hoja(sheet_id)
     respuesta = procesar_pregunta(mensaje, datos_respuestas)
 
     return jsonify({"respuesta": respuesta}), 200

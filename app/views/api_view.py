@@ -1,5 +1,5 @@
 from flask import Blueprint
-from app.controllers.bot_controller import process_request
+from app.controllers.chat_controller import responder_pregunta
 from app.controllers.user_controller import registrar_usuario, obtener_usuarios
 from app.controllers.membresia_controller import registrar_membresia, obtener_membresias
 from app.controllers.documento_controller import registrar_documento, obtener_documentos
@@ -19,10 +19,5 @@ api_bp.route('/documentos', methods=['POST'])(registrar_documento)
 api_bp.route('/documentos', methods=['GET'])(obtener_documentos)
 
 
-
-@api_bp.route("/webhook", methods=["POST"])
-def webhook():
-    token = request.args.get("token", "")
-    data = request.json
-    respuesta = process_request(data, token)
-    return {"respuesta": respuesta}, 200
+# Responder
+api_bp.route('/chatbot/responder',  methods=['POST'])(responder_pregunta)
