@@ -16,10 +16,12 @@ ev-liora-api/
 │   │   ├── __init__.py
 │   │   ├── user_controller.py
 │   │   └── bot_controller.py
+│   │   └── numero_whatsapp_controller.py 
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── auth_service.py
 │   │   └── sheet_service.py
+│   │   └── numero_whatsapp_service.py 
 │   └── views/
 │       ├── __init__.py
 │       ├── api_view.py

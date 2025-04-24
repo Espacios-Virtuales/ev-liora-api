@@ -1,7 +1,7 @@
 import re
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from app.models.db_models import Documento
+from app.models import Documento
 
 def extraer_id_hoja(enlace):
     patron = r'/d/([a-zA-Z0-9-_]+)'

@@ -1,8 +1,8 @@
 import re
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from app.models.chat_model import EntradaChat
-from app.models.db_models import Documento
+from app.models import EntradaChat
+from app.models import Documento
 
 def extraer_sheet_id(enlace):
     match = re.search(r"/d/([a-zA-Z0-9-_]+)", enlace)

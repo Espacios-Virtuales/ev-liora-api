@@ -3,6 +3,8 @@ from app.controllers.chat_controller import responder_pregunta
 from app.controllers.user_controller import registrar_usuario, obtener_usuarios
 from app.controllers.membresia_controller import registrar_membresia, obtener_membresias
 from app.controllers.documento_controller import registrar_documento, obtener_documentos
+from app.controllers import numero_whatsapp_controller
+
 
 api_bp = Blueprint("api", __name__)
 
@@ -21,3 +23,10 @@ api_bp.route('/documentos', methods=['GET'])(obtener_documentos)
 
 # Responder
 api_bp.route('/chatbot/responder',  methods=['POST'])(responder_pregunta)
+
+# Números de WhatsApp
+api_bp.route('/numeros_whatsapp', methods=['POST'])(numero_whatsapp_controller.registrar_numero_whatsapp)
+api_bp.route('/numeros_whatsapp', methods=['GET'])(numero_whatsapp_controller.obtener_numeros_whatsapp)
+api_bp.route('/numeros_whatsapp/<int:numero_id>', methods=['GET'])(numero_whatsapp_controller.obtener_numero_whatsapp)
+api_bp.route('/numeros_whatsapp/<int:numero_id>', methods=['PUT'])(numero_whatsapp_controller.actualizar_numero_whatsapp)
+api_bp.route('/numeros_whatsapp/<int:numero_id>', methods=['DELETE'])(numero_whatsapp_controller.eliminar_numero_whatsapp)
