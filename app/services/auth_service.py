@@ -1,6 +1,8 @@
 # app/services/auth_service.py
 
 from app.models import Usuario, Membresia, Documento
+from app import db
+
 
 def crear_usuario(nombre, email, membresia_id, documento_id=None):
     # Verificar existencia de la membresía

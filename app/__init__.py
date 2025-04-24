@@ -1,11 +1,9 @@
 from flask import Flask
 from app.config import Config
-from flask_sqlalchemy import SQLAlchemy
+from app.extensions import db
 
 from app.views.api_view import api_bp
 from app.views.whatsapp_view import whatsapp_bp
-
-db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
@@ -15,4 +13,9 @@ def create_app():
     app.register_blueprint(api_bp)
     app.register_blueprint(whatsapp_bp)
     
+
+    with app.app_context():
+        from . import models  # Importa tus modelos aquí
+        db.create_all()  # Crea todas las tablas
+
     return app
