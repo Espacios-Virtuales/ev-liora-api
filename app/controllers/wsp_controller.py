@@ -3,8 +3,16 @@ from app.services import whatsapp_service
 
 def registrar_numero_whatsapp():
     data = request.get_json()
-    nuevo_numero = whatsapp_service.crear_numero_whatsapp(data)
-    return jsonify({'mensaje': 'Número de WhatsApp registrado exitosamente', 'id': nuevo_numero.id}), 201
+    resultado = whatsapp_service.crear_numero_whatsapp(data)
+
+    # Si la función devuelve una tupla, es una respuesta de error
+    if isinstance(resultado, tuple):
+        return resultado
+
+    return jsonify({
+        'mensaje': 'Número de WhatsApp registrado exitosamente',
+        'id': resultado.id
+    }), 201
 
 def obtener_numeros_whatsapp():
     numeros = whatsapp_service.obtener_numeros_whatsapp()
