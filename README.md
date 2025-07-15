@@ -11,17 +11,25 @@ ev-liora-api/
 │   ├── config.py
 │   ├── models/
 │   │   ├── __init__.py
-│   │   └── db_models.py
+│   │   └── chat_model.py
+│   │   └── documento.py
+│   │   └── mebresia.py
+│   │   └── numero_whatsapp.py
+│   │   └── usuario.py
 │   ├── controllers/
 │   │   ├── __init__.py
-│   │   ├── user_controller.py
-│   │   └── bot_controller.py
-│   │   └── numero_whatsapp_controller.py 
+│   │   ├── chat_controller.py
+│   │   ├── documento_controller.py
+│   │   └── membresia_controller.py
+│   │   └── user_controller.py 
+│   │   └── wsp_controller.py 
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── auth_service.py
-│   │   └── sheet_service.py
-│   │   └── numero_whatsapp_service.py 
+│   │   ├── documento_service.py
+│   │   ├── chat_service.py
+│   │   └── membresia_service.py
+│   │   └── whatsapp_service.py 
 │   └── views/
 │       ├── __init__.py
 │       ├── api_view.py
