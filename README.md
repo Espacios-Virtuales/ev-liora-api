@@ -7,37 +7,35 @@
 ```
 ev-liora-api/
 ├── app/
-│   ├── __init__.py
-│   ├── config.py
 │   ├── models/
-│   │   ├── __init__.py
-│   │   └── chat_model.py
-│   │   └── documento.py
-│   │   └── mebresia.py
-│   │   └── numero_whatsapp.py
-│   │   └── usuario.py
+│   │   ├── waba_account.py      # NUEVO (sustituye numero_whatsapp.py)
+│   │   ├── cliente.py           # NUEVO
+│   │   ├── catalog_active.py    # NUEVO
+│   │   ├── catalog_snapshot.py  # NUEVO
+│   │   ├── convo_state.py       # NUEVO
+│   │   ├── ingest_log.py        # NUEVO
+│   │   ├── usuario.py
+│   │   ├── membresia.py
+│   │   ├── documento.py
+│   │   ├── chat_model.py
 │   ├── controllers/
-│   │   ├── __init__.py
+│   │   ├── meta_webhook_controller.py  # RENOMBRAR desde wsp_controller.py
 │   │   ├── chat_controller.py
 │   │   ├── documento_controller.py
-│   │   └── membresia_controller.py
-│   │   └── user_controller.py 
-│   │   └── wsp_controller.py 
+│   │   ├── membresia_controller.py
+│   │   ├── user_controller.py
 │   ├── services/
-│   │   ├── __init__.py
-│   │   ├── auth_service.py
-│   │   ├── documento_service.py
+│   │   ├── whatsapp_service.py
+│   │   ├── router_service.py     # NUEVO: orquesta intención/slots y handoff
+│   │   ├── catalog_service.py    # NUEVO: snapshots + validadores + activo
+│   │   ├── bitly_service.py      # NUEVO: UTM + short links
+│   │   ├── nlp_service.py        # NUEVO: fallback GPT-4o mini (opcional)
 │   │   ├── chat_service.py
-│   │   └── membresia_service.py
-│   │   └── whatsapp_service.py 
+│   │   ├── documento_service.py
+│   │   ├── membresia_service.py
 │   └── views/
-│       ├── __init__.py
-│       ├── api_view.py
-│       └── whatsapp_view.py
-├── main.py
-├── requirements.txt
-├── Procfile
-└── README.md
+│       ├── whatsapp_view.py
+│       └── api_view.py
 ```
 
 ## 🚀 Instalación y Ejecución
@@ -45,7 +43,7 @@ ev-liora-api/
 1. **Clonar el repositorio:**
 
    ```
-   git clone https://github.com/tu_usuario/ev-liora-api.git
+   git clone https://github.com/dutreras369/ev-liora-api.git
    cd ev-liora-api
    ```
 

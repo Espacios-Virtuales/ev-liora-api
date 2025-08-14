@@ -5,6 +5,7 @@ from app.services.sheet_service import cargar_datos_hoja, procesar_pregunta
 whatsapp_bp = Blueprint("whatsapp", __name__)
 
 @whatsapp_bp.route("/whatsapp", methods=["POST"])
+
 def recibir_mensaje():
     data = request.get_json()
     mensaje = data.get("mensaje", "")
