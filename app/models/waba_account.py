@@ -1,6 +1,3 @@
-from app.extensions import db
-
-
 # app/models/waba_account.py
 from app.extensions import db
 
