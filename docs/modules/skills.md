@@ -1,4 +1,4 @@
-# 🤖 Liora & Skills (WhatsApp Bot Microservice)
+# 🤖 Liora & Skills 
 
 Microservicio modular y **extensible por skills** para gestionar múltiples clientes a través de un único número de WhatsApp (Meta API).  
 Es la **base abstracta** del ecosistema, capaz de enrutar mensajes, aplicar políticas según plan/cliente y activar las extensiones (skills) correspondientes.

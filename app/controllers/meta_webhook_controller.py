@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from app.services import whatsapp_service
+from app.services.integrations import whatsapp_service
 
 def registrar_numero_whatsapp():
     data = request.get_json()

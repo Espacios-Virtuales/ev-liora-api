@@ -1,4 +1,4 @@
-# app/controllers/user_controller.py
+# app/controllers/usuarios_controller.py
 
 from flask import request, jsonify
 from app.services.auth_service import crear_usuario, obtener_todos_usuarios
