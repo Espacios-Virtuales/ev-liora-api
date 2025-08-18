@@ -1,70 +1,60 @@
 # 🌐 EV-Liora-API
 
-**EV-Liora-API** es una API desarrollada con Flask que integra funcionalidades de gestión de usuarios, membresías y documentos, así como la capacidad de interactuar con Google Sheets para procesar mensajes, especialmente aquellos provenientes de WhatsApp. Este proyecto forma parte del ecosistema de [Espacios Virtuales](https://espaciosvirtuales.lat), enfocado en brindar soluciones digitales conscientes.
+**EV-Liora-API** es una API desarrollada con Flask que integra gestión de usuarios, membresías y documentos, además de enrutar mensajes hacia *Skills* (Ecommerce, Vida Sana, Reciclaje y Código).  
+Forma parte del ecosistema [Espacios Virtuales](https://espaciosvirtuales.lat), enfocado en soluciones digitales conscientes.
 
-## 📁 Estructura del Proyecto
+---
 
-```
-ev-liora-api/
-├── app/
-│   ├── models/
-│   │   ├── waba_account.py      # NUEVO (sustituye numero_whatsapp.py)
-│   │   ├── cliente.py           # NUEVO
-│   │   ├── catalog_active.py    # NUEVO
-│   │   ├── catalog_snapshot.py  # NUEVO
-│   │   ├── convo_state.py       # NUEVO
-│   │   ├── ingest_log.py        # NUEVO
-│   │   ├── usuario.py
-│   │   ├── membresia.py
-│   │   ├── documento.py
-│   │   ├── chat_model.py
-│   ├── controllers/
-│   │   ├── meta_webhook_controller.py  # RENOMBRAR desde wsp_controller.py
-│   │   ├── chat_controller.py
-│   │   ├── documento_controller.py
-│   │   ├── membresia_controller.py
-│   │   ├── user_controller.py
-│   ├── services/
-│   │   ├── whatsapp_service.py
-│   │   ├── router_service.py     # NUEVO: orquesta intención/slots y handoff
-│   │   ├── catalog_service.py    # NUEVO: snapshots + validadores + activo
-│   │   ├── bitly_service.py      # NUEVO: UTM + short links
-│   │   ├── nlp_service.py        # NUEVO: fallback GPT-4o mini (opcional)
-│   │   ├── chat_service.py
-│   │   ├── documento_service.py
-│   │   ├── membresia_service.py
-│   └── views/
-│       ├── whatsapp_view.py
-│       └── api_view.py
-```
+## 📁 Documentación
+
+La documentación detallada está en [`docs/`](docs/):
+
+- 📊 **Diagramas**
+  - [Flujos principales](docs/diagrams/flow.md)
+  - [Modelos de datos](docs/diagrams/models.md)
+  - [Visión arquitectónica](docs/diagrams/vision.md)
+
+- 🐞 **Proceso & Debug**
+  - [Checklist de desarrollo](docs/debug/checklist.md)
+
+- 🧩 **Módulos**
+  - [Skills & extensiones](docs/modules/skills.md)
+
+- 🌱 **Agente Vida Sana**
+  - [README Agente Vida Sana](README_ev_agente_vida_sana.md)
+
+- 🗂 **Estructura del Proyecto**
+  - [Project Structure](docs/structure.md)
+
+---
 
 ## 🚀 Instalación y Ejecución
 
 1. **Clonar el repositorio:**
 
-   ```
+   ```bash
    git clone https://github.com/dutreras369/ev-liora-api.git
    cd ev-liora-api
    ```
 
 2. **Crear y activar un entorno virtual:**
 
-   ```
+   ```bash
    python3 -m venv venv
    source venv/bin/activate  # En Windows: venv\Scripts\activate
    ```
 
 3. **Instalar dependencias:**
 
-   ```
+   ```bash
    pip install -r requirements.txt
    ```
 
 4. **Configurar variables de entorno:**
 
-   Crea un archivo `.env` en la raíz del proyecto con las siguientes variables:
+   Crear archivo `.env`:
 
-   ```
+   ```ini
    FLASK_APP=main.py
    FLASK_ENV=development
    DATABASE_URL=sqlite:///liora.db
@@ -72,7 +62,7 @@ ev-liora-api/
 
 5. **Inicializar la base de datos:**
 
-   ```
+   ```bash
    flask shell
    >>> from app.models.db_models import db
    >>> db.create_all()
@@ -81,48 +71,53 @@ ev-liora-api/
 
 6. **Ejecutar la aplicación:**
 
-   ```
+   ```bash
    flask run
    ```
 
-   La API estará disponible en `http://localhost:5000/`.
+   Disponible en `http://localhost:5000/`.
+
+---
 
 ## 🧪 Endpoints Principales
 
-- **Usuarios:**
+- **Usuarios**
   - `POST /usuarios` – Crear un nuevo usuario.
-  - `GET /usuarios` – Obtener la lista de usuarios.
+  - `GET /usuarios` – Obtener lista de usuarios.
 
-- **WhatsApp:**
-  - `POST /whatsapp` – Procesar mensajes entrantes de WhatsApp.
+- **WhatsApp**
+  - `POST /whatsapp` – Procesar mensajes entrantes.
 
-## 🔧 Configuración de Google Sheets
+---
 
-Para habilitar la interacción con Google Sheets:
+## 🔧 Configuración Google Sheets
 
-1. **Crear credenciales de servicio en Google Cloud:**
-   - Accede a [Google Cloud Console](https://console.cloud.google.com/).
-   - Crea un proyecto y habilita las APIs de Google Sheets y Google Drive.
-   - Crea una cuenta de servicio y descarga el archivo JSON de credenciales.
+1. Crear credenciales en [Google Cloud Console](https://console.cloud.google.com/).  
+2. Guardar archivo `credenciales.json` en la raíz.  
+3. Compartir el documento con el correo de la cuenta de servicio.  
 
-2. **Guardar el archivo de credenciales:**
-   - Renombra el archivo descargado a `credenciales.json`.
-   - Colócalo en la raíz del proyecto.
+---
 
-3. **Compartir el documento de Google Sheets:**
-   - Comparte el documento con el correo electrónico de la cuenta de servicio.
+## 📌 Estado del Proyecto
+
+- [x] Base Flask multi-tenant (usuarios, clientes, waba account).  
+- [x] Webhook Meta integrado.  
+- [ ] Skill Ecommerce (catálogo + Bitly).  
+- [ ] Skill Vida Sana.  
+- [ ] Skill Reciclaje (Enraiza).  
+- [ ] Skill Código (interno).  
+
+👉 Detalle: [Checklist de desarrollo](docs/debug/checklist.md)
+
+---
 
 ## 📌 Notas Adicionales
 
-- **Despliegue en Producción:**
-  - Para desplegar la aplicación en un entorno de producción, considera utilizar servicios como Heroku, Render o Railway.
-  - Asegúrate de configurar las variables de entorno adecuadas y utilizar una base de datos persistente.
+- **Producción:** usar contenedores (Heroku, Render, Railway).  
+- **Pruebas:** unitarias e integración recomendadas.  
+- **Contribuciones:** issues o PRs son bienvenidos.  
 
-- **Pruebas:**
-  - Se recomienda implementar pruebas unitarias y de integración para asegurar la calidad del código.
-
-- **Contribuciones:**
-  - Las contribuciones son bienvenidas. Por favor, abre un issue o pull request para discutir cambios importantes.
+---
 
 ## 📄 Licencia
 
