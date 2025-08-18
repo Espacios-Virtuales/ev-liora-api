@@ -100,8 +100,8 @@ La documentación detallada está en [`docs/`](docs/):
 
 ## 📌 Estado del Proyecto
 
-- [x] Base Flask multi-tenant (usuarios, clientes, waba account).  
-- [x] Webhook Meta integrado.  
+- [ ] Base Flask multi-tenant (usuarios, clientes, waba account).  
+- [ ] Webhook Meta integrado.  
 - [ ] Skill Ecommerce (catálogo + Bitly).  
 - [ ] Skill Vida Sana.  
 - [ ] Skill Reciclaje (Enraiza).  
