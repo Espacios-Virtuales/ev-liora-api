@@ -1,3 +1,5 @@
+# app/models/chat_model.py
+
 class EntradaChat:
     def __init__(self, pregunta, respuesta, contexto=None, categoria=None, prioridad=None):
         self.pregunta = pregunta.strip().lower()

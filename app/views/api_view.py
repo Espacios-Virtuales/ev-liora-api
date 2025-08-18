@@ -1,32 +1,82 @@
-from flask import Blueprint
-from app.controllers.chat_controller import responder_pregunta
-from app.controllers.usuarios_controller import registrar_usuario, obtener_usuarios
+# app/views/api_view.py
+from flask import Blueprint, request, g
+from .responses import success, created, error
+from .serializers import usuario_to_dict, cliente_to_dict, waba_account_to_dict
+
+# Controladores 
+from app.controllers.usuarios_controller import post_usuarios_en_cliente, get_usuarios_de_cliente
+from app.controllers.clientes_controller import post_clientes
+from app.controllers.meta_webhook_controller import verify as meta_verify, events as meta_events
 from app.controllers.membresia_controller import registrar_membresia, obtener_membresias
 from app.controllers.documento_controller import registrar_documento, obtener_documentos
-from app.controllers import wsp_controller
 
+# Si tienes chat:
+from app.controllers.chat_controller import responder_pregunta
 
-api_bp = Blueprint("api", __name__)
+api_v1 = Blueprint("api_v1", __name__, url_prefix="/api/v1")
 
-# Usuarios
-api_bp.route('/usuarios', methods=['POST'])(registrar_usuario)
-api_bp.route('/usuarios', methods=['GET'])(obtener_usuarios)
+# ---- Clientes
+@api_v1.route("/clientes", methods=["POST"])
+def api_post_clientes():
+    resp, status = post_clientes()  # usa el controlador que ya armamos
+    return resp, status
 
-# Membresías
-api_bp.route('/membresias', methods=['POST'])(registrar_membresia)
-api_bp.route('/membresias', methods=['GET'])(obtener_membresias)
+# ---- Usuarios (por cliente)
+@api_v1.route("/clientes/<int:cliente_id>/usuarios", methods=["POST"])
+def api_post_usuarios(cliente_id: int):
+    resp, status = post_usuarios_en_cliente(cliente_id)
+    return resp, status
 
-# Documentos
-api_bp.route('/documentos', methods=['POST'])(registrar_documento)
-api_bp.route('/documentos', methods=['GET'])(obtener_documentos)
+@api_v1.route("/clientes/<int:cliente_id>/usuarios", methods=["GET"])
+def api_get_usuarios(cliente_id: int):
+    resp, status = get_usuarios_de_cliente(cliente_id)
+    return resp, status
 
+# ---- Membresías
+@api_v1.route("/membresias", methods=["POST"])
+def api_post_membresias():
+    try:
+        data = request.get_json(force=True)
+        obj = registrar_membresia(data)  # asumiendo tu controlador retorna objeto
+        return created({"id": obj.id})
+    except Exception as e:
+        return error(str(e), code="VALIDATION_ERROR", status=400)
 
-# Responder
-api_bp.route('/chatbot/responder',  methods=['POST'])(responder_pregunta)
+@api_v1.route("/membresias", methods=["GET"])
+def api_get_membresias():
+    objs = obtener_membresias()
+    return success([{"id": m.id, "nombre": m.nombre} for m in objs])
 
-# Números de WhatsApp
-api_bp.route('/numeros_whatsapp', methods=['POST'])(wsp_controller.registrar_numero_whatsapp)
-api_bp.route('/numeros_whatsapp', methods=['GET'])(wsp_controller.obtener_numeros_whatsapp)
-api_bp.route('/numeros_whatsapp/<int:numero_id>', methods=['GET'])(wsp_controller.obtener_numero_whatsapp)
-api_bp.route('/numeros_whatsapp/<int:numero_id>', methods=['PUT'])(wsp_controller.actualizar_numero_whatsapp)
-api_bp.route('/numeros_whatsapp/<int:numero_id>', methods=['DELETE'])(wsp_controller.eliminar_numero_whatsapp)
+# ---- Documentos
+@api_v1.route("/documentos", methods=["POST"])
+def api_post_documentos():
+    try:
+        data = request.get_json(force=True)
+        obj = registrar_documento(data)
+        return created({"id": obj.id})
+    except Exception as e:
+        return error(str(e), code="VALIDATION_ERROR", status=400)
+
+@api_v1.route("/documentos", methods=["GET"])
+def api_get_documentos():
+    objs = obtener_documentos()
+    return success([{"id": d.id, "nombre": d.nombre} for d in objs])
+
+# ---- Chat
+@api_v1.route("/chatbot/responder", methods=["POST"])
+def api_chat_responder():
+    try:
+        data = request.get_json(force=True)
+        r = responder_pregunta(data)
+        return success(r)
+    except Exception as e:
+        return error(str(e), status=400)
+
+# ---- Webhook Meta (renombrado desde wsp_controller)
+@api_v1.route("/webhook/meta", methods=["GET"])
+def api_webhook_meta_verify():
+    return meta_verify()
+
+@api_v1.route("/webhook/meta", methods=["POST"])
+def api_webhook_meta_events():
+    return meta_events()
