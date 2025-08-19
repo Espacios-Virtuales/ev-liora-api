@@ -1,3 +1,5 @@
+# app/services/chat_service.py
+
 import re
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -21,7 +23,7 @@ def cargar_entradas_desde_sheet(documento_id, nombre_hoja="respuestas"):
 def cargar_datos_hoja(sheet_id, nombre_hoja="respuestas"):
     try:
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_name("data-liora-dbc243002267.json", scope)
+        creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
         client = gspread.authorize(creds)
         sheet = client.open_by_key(sheet_id).worksheet(nombre_hoja)
         return sheet.get_all_records()

@@ -1,19 +1,17 @@
 # app/services/membresia_service.py
-
-from app import db
+from __future__ import annotations
+from app.extensions import db
 from app.models.membresia import Membresia
 
-def crear_membresia(nombre, descripcion=None):
+def crear_membresia(nombre: str, descripcion: str | None = None) -> Membresia:
     if not nombre:
         raise ValueError("El nombre es obligatorio.")
-
     if Membresia.query.filter_by(nombre=nombre).first():
         raise ValueError("La membresía ya existe.")
-
-    nueva_membresia = Membresia(nombre=nombre, descripcion=descripcion)
-    db.session.add(nueva_membresia)
+    m = Membresia(nombre=nombre, descripcion=descripcion)
+    db.session.add(m)
     db.session.commit()
-    return nueva_membresia
+    return m
 
-def obtener_todas_membresias():
-    return Membresia.query.all()
+def obtener_todas_membresias() -> list[Membresia]:
+    return Membresia.query.order_by(Membresia.id.desc()).all()
