@@ -30,6 +30,10 @@ typing_extensions==4.13.2
 urllib3==2.4.0
 Werkzeug==3.1.3
 
+psycopg2-binary==2.9.9
+alembic==1.13.2
+python-dotenv==1.0.1
+
 # --- agregados para la API y la doc ---
 flask-smorest==0.44.0
 apispec==6.6.0
