@@ -5,7 +5,7 @@ from typing import List, Dict
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-GOOGLE_CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS_FILE", "credentials.json")
+GOOGLE_CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS_FILE", "data-liora.json")
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 
 def extract_sheet_id(url: str) -> str | None:
