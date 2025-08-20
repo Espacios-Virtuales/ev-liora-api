@@ -1,23 +1,32 @@
 # app/controllers/usuarios_controller.py
-from flask import Blueprint, request, jsonify, g
-from app.services.core.security import requires_tenant
+from __future__ import annotations
+from flask import Blueprint, request, g
+from sqlalchemy.exc import IntegrityError
+from app.views.responses import success, created, error
 from app.services.core.context_service import resolve_tenant
 from app.services.auth_service import crear_usuario_en_cliente, listar_usuarios_de_cliente
+from app.views.serializers import usuario_to_dict
 
 bp = Blueprint("usuarios", __name__)
 
-@bp.route("/clientes/<int:cliente_id>/usuarios", methods=["POST"])
 def post_usuarios_en_cliente(cliente_id: int):
     """
-    Alta de usuario dentro del cliente indicado.
-    Si usas header X-Client-ID, puedes llamar resolve_tenant() para setear g.cliente_id
-    y cross-check contra el path.
+    Alta de usuario dentro de un cliente.
     """
-    resolve_tenant()  # opcional si usas X-Client-ID; asegura g.cliente_id
-    if hasattr(g, "cliente_id") and g.cliente_id != cliente_id:
-        return jsonify({"error": "X-Client-ID no coincide con cliente_id del path"}), 400
+    # opcional: reafirmar tenant por header X-Client-ID
+    try:
+        resolve_tenant()
+        if hasattr(g, "cliente_id") and g.cliente_id != cliente_id:
+            return error("X-Client-ID no coincide con cliente_id del path", status=400)
+    except Exception:
+        # si no usas X-Client-ID para este endpoint, puedes omitir resolve_tenant()
+        pass
 
-    data = request.get_json(force=True)
+    data = request.get_json(silent=True) or {}
+    missing = [k for k in ("nombre", "email", "membresia_id") if not data.get(k)]
+    if missing:
+        return error("Datos inválidos", code="VALIDATION_ERROR", details={"missing": missing}, status=422)
+
     try:
         u = crear_usuario_en_cliente(
             nombre=data["nombre"],
@@ -28,24 +37,25 @@ def post_usuarios_en_cliente(cliente_id: int):
             waba_account_id=data.get("waba_account_id"),
             create_context=True,
         )
-        return jsonify({
-            "id": u.id,
-            "email": u.email,
-            "cliente_id": u.cliente_id
-        }), 201
-    except KeyError as e:
-        return jsonify({"error": f"Falta campo requerido: {e}"}), 400
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        return created(usuario_to_dict(u))
+    except ValueError as ve:
+        return error(str(ve), code="VALIDATION_ERROR", status=400)
+    except IntegrityError as ie:
+        return error("Conflicto de integridad", code="CONFLICT", details=str(ie.orig), status=409)
+    except Exception as e:
+        return error("Error no controlado al crear usuario", code="INTERNAL_ERROR", details=str(e), status=500)
 
-@bp.route("/clientes/<int:cliente_id>/usuarios", methods=["GET"])
+
 def get_usuarios_de_cliente(cliente_id: int):
-    resolve_tenant()  # opcional
-    if hasattr(g, "cliente_id") and g.cliente_id != cliente_id:
-        return jsonify({"error": "X-Client-ID no coincide con cliente_id del path"}), 400
+    """
+    Listar usuarios del cliente.
+    """
+    try:
+        resolve_tenant()
+        if hasattr(g, "cliente_id") and g.cliente_id != cliente_id:
+            return error("X-Client-ID no coincide con cliente_id del path", status=400)
+    except Exception:
+        pass
 
-    usuarios = listar_usuarios_de_cliente(cliente_id=cliente_id)
-    return jsonify([
-        {"id": u.id, "email": u.email, "nombre": u.nombre}
-        for u in usuarios
-    ])
+    users = listar_usuarios_de_cliente(cliente_id=cliente_id)
+    return success([usuario_to_dict(u) for u in users])

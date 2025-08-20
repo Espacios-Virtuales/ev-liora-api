@@ -1,40 +1,29 @@
 # app/services/chat_service.py
+from __future__ import annotations
+from typing import List, Optional
+from app.models import EntradaChat, Documento
+from app.services.sheet_service import extract_sheet_id, load_sheet_records
 
-import re
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-from app.models import EntradaChat
-from app.models import Documento
-
-def extraer_sheet_id(enlace):
-    match = re.search(r"/d/([a-zA-Z0-9-_]+)", enlace)
-    return match.group(1) if match else None
-
-def cargar_entradas_desde_sheet(documento_id, nombre_hoja="respuestas"):
-    documento = Documento.query.get(documento_id)
-    if not documento:
+def load_entries_from_document(documento_id: int, sheet_name: str = "respuestas") -> List[EntradaChat]:
+    doc = Documento.query.get(documento_id)
+    if not doc:
         raise ValueError("Documento no encontrado.")
-    sheet_id = extraer_sheet_id(documento.enlace)
-    print(sheet_id)
-    registros = cargar_datos_hoja (sheet_id)
-    return [EntradaChat.from_dict(row) for row in registros]
+    sheet_id = extract_sheet_id(doc.enlace)
+    if not sheet_id:
+        raise ValueError("Enlace de Google Sheet inválido (no se pudo extraer sheet_id).")
+    rows = load_sheet_records(sheet_id=sheet_id, sheet_name=sheet_name)
+    return [EntradaChat.from_dict(row) for row in rows]
 
-
-def cargar_datos_hoja(sheet_id, nombre_hoja="respuestas"):
-    try:
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
-        client = gspread.authorize(creds)
-        sheet = client.open_by_key(sheet_id).worksheet(nombre_hoja)
-        return sheet.get_all_records()
-    except Exception as e:
-        print(f"Error al cargar la hoja: {e}")
-        raise
-
-
-def buscar_respuesta(pregunta, entradas):
-    pregunta = pregunta.strip().lower()
-    for entrada in entradas:
-        if entrada.pregunta in pregunta:
-            return entrada.respuesta
+def find_answer(question: str, entries: List[EntradaChat]) -> Optional[str]:
+    """
+    Matching simple: 'entrada.pregunta' contenida en la pregunta normalizada.
+    """
+    if not question:
+        return None
+    q = (question or "").strip().lower()
+    for e in entries:
+        if not getattr(e, "pregunta", None):
+            continue
+        if e.pregunta.strip().lower() in q:
+            return getattr(e, "respuesta", None)
     return None

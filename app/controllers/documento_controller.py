@@ -1,26 +1,17 @@
 # app/controllers/documento_controller.py
-
-from flask import request, jsonify
+from __future__ import annotations
+from app.views.responses import success, created, error
 from app.services.documento_service import crear_documento, obtener_todos_documentos
 
-def registrar_documento():
-    data = request.get_json()
-    titulo = data.get('titulo')
-    enlace = data.get('enlace')
-
+def registrar_documento(data: dict):
+    if not data or not data.get("titulo") or not data.get("enlace"):
+        return error("Datos inválidos", code="VALIDATION_ERROR", details={"missing": ["titulo", "enlace"]}, status=422)
     try:
-        nuevo_documento = crear_documento(titulo, enlace)
-        return jsonify({'mensaje': 'Documento registrado exitosamente'}), 201
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        d = crear_documento(data["titulo"], data["enlace"])
+        return created({"id": d.id})
+    except ValueError as ve:
+        return error(str(ve), code="VALIDATION_ERROR", status=400)
 
 def obtener_documentos():
-    documentos = obtener_todos_documentos()
-    resultado = [
-        {
-            'id': d.id,
-            'titulo': d.titulo,
-            'enlace': d.enlace
-        } for d in documentos
-    ]
-    return jsonify(resultado), 200
+    arr = obtener_todos_documentos()
+    return success([{"id": d.id, "titulo": d.titulo} for d in arr])

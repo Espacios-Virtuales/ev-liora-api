@@ -1,26 +1,18 @@
 # app/controllers/membresia_controller.py
-
-from flask import request, jsonify
+from __future__ import annotations
+from flask import request
+from app.views.responses import success, created, error
 from app.services.membresia_service import crear_membresia, obtener_todas_membresias
 
-def registrar_membresia():
-    data = request.get_json()
-    nombre = data.get('nombre')
-    descripcion = data.get('descripcion')
-
+def registrar_membresia(data: dict):
+    if not data or not data.get("nombre"):
+        return error("Datos inválidos", code="VALIDATION_ERROR", details={"missing": ["nombre"]}, status=422)
     try:
-        nueva_membresia = crear_membresia(nombre, descripcion)
-        return jsonify({'mensaje': 'Membresía registrada exitosamente'}), 201
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        m = crear_membresia(nombre=data["nombre"], descripcion=data.get("descripcion"))
+        return created({"id": m.id, "nombre": m.nombre})
+    except ValueError as ve:
+        return error(str(ve), code="VALIDATION_ERROR", status=400)
 
 def obtener_membresias():
-    membresias = obtener_todas_membresias()
-    resultado = [
-        {
-            'id': m.id,
-            'nombre': m.nombre,
-            'descripcion': m.descripcion
-        } for m in membresias
-    ]
-    return jsonify(resultado), 200
+    arr = obtener_todas_membresias()
+    return success([{"id": m.id, "nombre": m.nombre} for m in arr])

@@ -1,58 +1,31 @@
-from flask import request, jsonify
-from app.services.integrations import whatsapp_service
+# app/controllers/meta_webhook_controller.py
+from __future__ import annotations
+from flask import Blueprint, request, Response
+import os
 
-def registrar_numero_whatsapp():
-    data = request.get_json()
-    resultado = whatsapp_service.crear_numero_whatsapp(data)
+from app.views.responses import success, error
+from app.services.integrations.whatsapp_service import verify_challenge, verify_signature
 
-    # Si la función devuelve una tupla, es una respuesta de error
-    if isinstance(resultado, tuple):
-        return resultado
+bp = Blueprint("meta_webhook", __name__)
+META_VERIFY_TOKEN = os.getenv("WABA_VERIFY_TOKEN", "changeme")
+META_APP_SECRET   = os.getenv("WABA_APP_SECRET", "changeme")
 
-    return jsonify({
-        'mensaje': 'Número de WhatsApp registrado exitosamente',
-        'id': resultado.id
-    }), 201
+def verify():
+    # GET /webhook/meta
+    challenge = verify_challenge(request.args, META_VERIFY_TOKEN)
+    if challenge is None:
+        return error("verify_token inválido", code="FORBIDDEN", status=403)
+    # Respuesta en texto plano como exige Meta
+    return Response(challenge, status=200, mimetype="text/plain")
 
-def obtener_numeros_whatsapp():
-    numeros = whatsapp_service.obtener_numeros_whatsapp()
-    resultado = []
-    for numero in numeros:
-        resultado.append({
-            'id': numero.id,
-            'numero': numero.numero,
-            'waba_id': numero.waba_id,
-            'phone_number_id': numero.phone_number_id,
-            'token': numero.token,
-            'webhook_url': numero.webhook_url,
-            'estado': numero.estado
-        })
-    return jsonify(resultado), 200
+def events():
+    # POST /webhook/meta
+    raw = request.get_data()
+    sig = request.headers.get("X-Hub-Signature-256", "")
+    if not verify_signature(META_APP_SECRET, raw, sig):
+        return error("Firma inválida", code="FORBIDDEN", status=403)
 
-def obtener_numero_whatsapp(numero_id):
-    numero = whatsapp_service.obtener_numero_whatsapp_por_id(numero_id)
-    if not numero:
-        return jsonify({'error': 'Número de WhatsApp no encontrado'}), 404
-    resultado = {
-        'id': numero.id,
-        'numero': numero.numero,
-        'waba_id': numero.waba_id,
-        'phone_number_id': numero.phone_number_id,
-        'token': numero.token,
-        'webhook_url': numero.webhook_url,
-        'estado': numero.estado
-    }
-    return jsonify(resultado), 200
-
-def actualizar_numero_whatsapp(numero_id):
-    data = request.get_json()
-    numero_actualizado = whatsapp_service.actualizar_numero_whatsapp(numero_id, data)
-    if not numero_actualizado:
-        return jsonify({'error': 'Número de WhatsApp no encontrado'}), 404
-    return jsonify({'mensaje': 'Número de WhatsApp actualizado exitosamente'}), 200
-
-def eliminar_numero_whatsapp(numero_id):
-    numero_eliminado = whatsapp_service.eliminar_numero_whatsapp(numero_id)
-    if not numero_eliminado:
-        return jsonify({'error': 'Número de WhatsApp no encontrado'}), 404
-    return jsonify({'mensaje': 'Número de WhatsApp eliminado exitosamente'}), 200
+    # TODO: parsear y despachar al router_service (intents/skills)
+    # payload = request.get_json(silent=True) or {}
+    # ... manejar eventos ...
+    return success({"received": True})
