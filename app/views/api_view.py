@@ -1,6 +1,5 @@
 # app/views/api_view.py
 from __future__ import annotations
-# 🔹 CAMBIO: usar el Blueprint de flask_smorest
 from flask_smorest import Blueprint
 from flask import request
 

@@ -4,6 +4,8 @@ from flask import Flask, jsonify
 from app.config import Config
 from app.extensions import db
 
+
+
 # 🔹 NUEVO: smorest para OpenAPI/Swagger
 from flask_smorest import Api
 
@@ -27,6 +29,8 @@ def create_app() -> Flask:
 
     # 🔹 NUEVO: Instancia de Api (monta /docs y /docs/openapi.json)
     api = Api(app)
+
+    
     # (opcional pero útil) seguridad global multi-tenant por header
     api.spec.components.security_scheme(
         "tenantHeader", {"type": "apiKey", "in": "header", "name": "X-Client-ID"}
