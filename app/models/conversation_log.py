@@ -1,12 +1,17 @@
 # app/models/conversation_log.py
+import uuid
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from app.extensions import db
 
 class ConversationLog(db.Model):
     __tablename__ = 'conversation_logs'
 
-    id = db.Column(db.Integer, primary_key=True)
-    cliente_id = db.Column(db.Integer, db.ForeignKey('clientes.id'), nullable=False)
-    waba_account_id = db.Column(db.Integer, db.ForeignKey('waba_accounts.id'), nullable=False)
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    cliente_id = db.Column(UUID(as_uuid=True), db.ForeignKey('clientes.id'), index=True, nullable=False)
+    waba_account_id = db.Column(UUID(as_uuid=True), db.ForeignKey('waba_accounts.id'), index=True)
+    __table_args__ = (
+        db.Index("ix_conversation_logs_cliente_created", "cliente_id", "created_at"),
+    )
     user_msisdn = db.Column(db.String(32), nullable=False, index=True)
     direction = db.Column(db.String(8), nullable=False)  # "in" | "out"
     intent = db.Column(db.String(64))

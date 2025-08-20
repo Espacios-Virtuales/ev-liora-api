@@ -1,54 +1,62 @@
 # migrations/env.py
 from __future__ import annotations
-
 import os
 from logging.config import fileConfig
-
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-# --- Alembic base config ---
+# Logging base
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# --- Cargar tu app Flask y metadata de modelos ---
-# Asegura que 'app/' esté importable (si ejecutas desde la raíz del repo, no hace falta)
-# import sys; sys.path.append(os.path.dirname(os.path.dirname(__file__)))  # opcional
+# Cargar .env (DATABASE_URL, etc.)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
 
-from app import create_app
-from app.extensions import db
-
-# Inicializa la app y registra modelos en el metadata
-flask_app = create_app()
-flask_app.app_context().push()
-
-# Lee DATABASE_URL del entorno y la inyecta en alembic.ini
+# URL de DB desde entorno
 db_url = os.getenv("DATABASE_URL")
 if db_url:
     config.set_main_option("sqlalchemy.url", db_url)
 
-# Metadata que usará Alembic para autogenerate
+# Traer SOLO metadata (sin levantar la app ni blueprints)
+from app.extensions import db
+# Importa módulos de modelos para poblar db.metadata
+from app.models import (
+    cliente,
+    usuario,
+    waba_account,
+    convo_state,
+    conversation_log,
+    catalog_active,
+    catalog_snapshot,
+    ingest_log,
+    documento,
+    membresia,
+    # incluye aquí user_context o client_context si existen en tu repo:
+    user_context,
+    client_context,
+)
+
 target_metadata = db.metadata
 
-
 def run_migrations_offline() -> None:
-    """Ejecuta migraciones en modo 'offline' (sin crear Engine)."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        compare_type=True,               # detecta cambios de tipo
-        compare_server_default=True,     # detecta defaults en server
+        compare_type=True,
+        compare_server_default=True,
     )
     with context.begin_transaction():
         context.run_migrations()
 
-
 def run_migrations_online() -> None:
-    """Ejecuta migraciones en modo 'online' (con Engine y conexión)."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -58,13 +66,12 @@ def run_migrations_online() -> None:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            compare_type=True,
-            compare_server_default=True,
-            render_as_batch=False,  # True solo si migras SQLite con alter de columnas
+            compare_type=True,            # detecta cambios de tipo (ej. String→Text, Integer→UUID…)
+            compare_server_default=True,  # detecta defaults en server
+            render_as_batch=False,        # True solo para SQLite legacy
         )
         with context.begin_transaction():
             context.run_migrations()
-
 
 if context.is_offline_mode():
     run_migrations_offline()

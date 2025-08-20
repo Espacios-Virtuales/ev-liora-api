@@ -1,12 +1,17 @@
 # app/models/convo_state.py
+import uuid
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from app.extensions import db
 
 class ConvoState(db.Model):
     __tablename__ = 'convo_states'
 
-    id = db.Column(db.Integer, primary_key=True)
-    waba_account_id = db.Column(db.Integer, db.ForeignKey('waba_accounts.id'), nullable=False)
-    cliente_id = db.Column(db.Integer, db.ForeignKey('clientes.id'))  # puede determinarse luego
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    waba_account_id = db.Column(UUID(as_uuid=True), db.ForeignKey('waba_accounts.id'), index=True, nullable=True)
+    __table_args__ = (
+        db.UniqueConstraint("cliente_id","user_msisdn", name="uq_convo_cliente_msisdn"),
+    )
+    cliente_id = db.Column(UUID(as_uuid=True), db.ForeignKey('clientes.id'), index=True, nullable=False)
     user_msisdn = db.Column(db.String(32), nullable=False, index=True)  # "5699xxxxxxx"
     last_intent = db.Column(db.String(64))
     slots_json = db.Column(db.JSON)      # {"color": "negro", "talla": "M"}

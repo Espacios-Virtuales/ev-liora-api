@@ -1,11 +1,13 @@
 # app/models/catalog_active.py
+import uuid
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from app.extensions import db
 
 class CatalogActive(db.Model):
     __tablename__ = 'catalog_active'
 
-    id = db.Column(db.Integer, primary_key=True)
-    cliente_id = db.Column(db.Integer, db.ForeignKey('clientes.id'), nullable=False, unique=True)
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    cliente_id = db.Column(UUID(as_uuid=True), db.ForeignKey('clientes.id'), unique=True, nullable=False)
     version = db.Column(db.String(64), nullable=False)
     checksum = db.Column(db.String(128), nullable=False)
     rows = db.Column(db.Integer, default=0)

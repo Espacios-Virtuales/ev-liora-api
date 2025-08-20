@@ -1,11 +1,12 @@
 # app/models/cliente.py
+import uuid
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from app.extensions import db
 
 class Cliente(db.Model):
     __tablename__ = 'clientes'
 
-    id = db.Column(db.Integer, primary_key=True)
-    waba_account_id = db.Column(db.Integer, db.ForeignKey('waba_accounts.id'), nullable=False)
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     nombre = db.Column(db.String(120), nullable=False)
     slug = db.Column(db.String(80), unique=True, index=True)
     estado = db.Column(db.String(32), default='activo')
@@ -17,7 +18,14 @@ class Cliente(db.Model):
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
     # Relaciones
-    waba_account = db.relationship('WabaAccount', back_populates='clientes')  # ← plural
+    waba_account = db.relationship(
+        "WabaAccount",
+        back_populates="cliente",
+        uselist=False,               
+        cascade="all, delete-orphan",
+        single_parent=True
+    )
+
     catalog_active = db.relationship('CatalogActive', uselist=False, back_populates='cliente', cascade='all, delete-orphan')
     snapshots = db.relationship('CatalogSnapshot', back_populates='cliente', cascade='all, delete-orphan')
     ingest_logs = db.relationship('IngestLog', back_populates='cliente', cascade='all, delete-orphan')

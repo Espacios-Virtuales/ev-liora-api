@@ -1,37 +1,39 @@
+# app/__init__.py
+from __future__ import annotations
 from flask import Flask, jsonify
 from app.config import Config
 from app.extensions import db
 
-# Blueprints
-from app.views.api_view import api_v1            # ← nueva API versionada
-from app.views.errors import errors_bp           # ← manejador global de errores
-
-# (Opcional) si aún usas el blueprint antiguo de WhatsApp:
-# from app.views.whatsapp_view import whatsapp_bp
-
-def create_app():
+def create_app() -> Flask:
     app = Flask(__name__)
     app.config.from_object(Config)
-
-    # Config JSON (mejor DX)
     app.config.setdefault("JSON_SORT_KEYS", False)
 
-    # inicializar extensiones
     db.init_app(app)
 
-    # healthcheck mínimo
     @app.get("/health")
     def health():
         return jsonify({"ok": True, "service": "liora-api"}), 200
 
-    # registrar blueprints (orden: errores primero para capturar todo)
-    app.register_blueprint(errors_bp)
-    app.register_blueprint(api_v1)
-    # (Opcional) app.register_blueprint(whatsapp_bp)
+    _register_blueprints(app)
 
-    # MODE DEV: crear tablas si aún no has migrado a Alembic
-    with app.app_context():
-        from . import models  # asegura que se importen todos los modelos
-        db.create_all()       # TODO: remover cuando uses `alembic upgrade head`
+    # ⚠️ Solo para entornos efímeros sin Alembic:
+    if app.config.get("LIORA_DB_CREATE") == "1":
+        with app.app_context():
+            from . import models
+            db.create_all()
 
     return app
+
+def _register_blueprints(app: Flask) -> None:
+    try:
+        from app.views.errors import errors_bp
+        app.register_blueprint(errors_bp)
+    except Exception as e:
+        app.logger.warning(f"[init] errors_bp no registrado: {e}")
+
+    try:
+        from app.views.api_view import api_v1
+        app.register_blueprint(api_v1)
+    except Exception as e:
+        app.logger.warning(f"[init] api_v1 no registrado: {e}")
