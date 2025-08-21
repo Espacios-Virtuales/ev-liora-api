@@ -9,7 +9,7 @@ from .serializers import usuario_to_dict, cliente_to_dict, waba_account_to_dict 
 
 # Controladores (devuelven (Response, status))
 from app.controllers.clientes_controller import post_clientes, get_cliente
-from app.controllers.usuarios_controller import post_usuarios_en_cliente, get_usuarios_de_cliente
+from app.controllers.usuarios_controller import post_usuarios_en_cliente, get_usuarios_de_cliente as ctrl_get_usuarios
 from app.controllers.membresia_controller import registrar_membresia, obtener_membresias
 from app.controllers.documento_controller import registrar_documento, obtener_documentos
 from app.controllers.meta_webhook_controller import verify as meta_verify, events as meta_events
@@ -17,6 +17,11 @@ from app.controllers.waba_controller import (
     post_waba, get_waba_list, get_waba_detail, patch_waba, delete_waba,
     attach_cliente_waba, detach_cliente_waba
 )
+
+# Paginador
+from app.schemas.users import UsersQuery
+from app.schemas.common import ErrorSchema
+from app.views.responses import success, error
 
 # 🔹 CAMBIO: smorest.Blueprint
 api_v1 = Blueprint("api_v1", __name__, url_prefix="/api/v1", description="API pública v1")
@@ -48,12 +53,19 @@ def api_post_usuarios(cliente_id: int):
     return post_usuarios_en_cliente(cliente_id)
 
 @api_v1.route("/clientes/<int:cliente_id>/usuarios", methods=["GET"])
-@api_v1.response(200, description="Listado de usuarios del cliente")
-@api_v1.doc(parameters=[{"in": "path", "name": "cliente_id", "schema": {"type": "integer"}}])
-def api_get_usuarios(cliente_id: int):
-    """Listar usuarios de un cliente"""
-    return get_usuarios_de_cliente(cliente_id)
-
+@api_v1.arguments(UsersQuery, location="query")              # ← page + page_size
+@api_v1.response(200, description="Listado paginado de usuarios")
+@api_v1.alt_response(400, schema="Error", description="Solicitud inválida")
+def api_get_usuarios(query_args, cliente_id: int):
+    try:
+        payload, status = ctrl_get_usuarios(
+            cliente_id=cliente_id,
+            page=query_args["page"],
+            page_size=query_args["page_size"],
+        )
+        return success(data=payload["data"], meta=payload["meta"], status=status)
+    except ValueError as e:
+        return error(str(e), code="BAD_REQUEST", status=400)
 # ----------------------
 # Membresías
 # ----------------------

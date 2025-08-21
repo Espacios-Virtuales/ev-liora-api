@@ -3,10 +3,6 @@ from __future__ import annotations
 from flask import Flask, jsonify
 from app.config import Config
 from app.extensions import db
-
-
-
-# 🔹 NUEVO: smorest para OpenAPI/Swagger
 from flask_smorest import Api
 
 def create_app() -> Flask:
@@ -14,11 +10,11 @@ def create_app() -> Flask:
     app.config.from_object(Config)
     app.config.setdefault("JSON_SORT_KEYS", False)
 
-    # 🔹 NUEVO: Config mínima de OpenAPI/Swagger UI
+    # OpenAPI / Swagger UI
     app.config.setdefault("API_TITLE", "Liora API")
     app.config.setdefault("API_VERSION", "v1")
     app.config.setdefault("OPENAPI_VERSION", "3.0.3")
-    app.config.setdefault("OPENAPI_URL_PREFIX", "/docs")   # UI y spec bajo /docs
+    app.config.setdefault("OPENAPI_URL_PREFIX", "/docs")
     app.config.setdefault("OPENAPI_SWAGGER_UI_PATH", "/")
     app.config.setdefault(
         "OPENAPI_SWAGGER_UI_URL",
@@ -27,29 +23,47 @@ def create_app() -> Flask:
 
     db.init_app(app)
 
-    # 🔹 NUEVO: Instancia de Api (monta /docs y /docs/openapi.json)
+    # Instancia de Api (monta /docs y /docs/openapi.json)
     api = Api(app)
 
-    
-    # (opcional pero útil) seguridad global multi-tenant por header
+    # Seguridad global (opcional)
     api.spec.components.security_scheme(
         "tenantHeader", {"type": "apiKey", "in": "header", "name": "X-Client-ID"}
     )
     api.spec.options["security"] = [{"tenantHeader": []}]
 
+    # 🔸 REGISTRO PEREZOSO DE SCHEMAS COMUNES (evita ciclos de import)
+    _register_openapi_components(app, api)
+
     @app.get("/health")
     def health():
         return jsonify({"ok": True, "service": "liora-api"}), 200
 
-    _register_blueprints(app, api)  # ← pasa también la instancia Api
+    _register_blueprints(app, api)
 
-    # ⚠️ Solo para entornos efímeros sin Alembic:
     if app.config.get("LIORA_DB_CREATE") == "1":
         with app.app_context():
             from . import models
             db.create_all()
 
     return app
+
+
+def _register_openapi_components(app: Flask, api: Api) -> None:
+    """Importa y registra schemas comunes sin provocar ciclos."""
+    try:
+        # Import diferido ↓ (si hay import circular, no cae la app)
+        from app.schemas.common import ErrorSchema, PaginationMetadata
+    except Exception as e:
+        app.logger.warning(f"[openapi] No se pudieron importar schemas comunes: {e}")
+        return
+
+    try:
+        api.spec.components.schema("Error", schema=ErrorSchema)
+        api.spec.components.schema("PaginationMetadata", schema=PaginationMetadata)
+        app.logger.info("[openapi] Schemas comunes registrados")
+    except Exception as e:
+        app.logger.warning(f"[openapi] No se pudieron registrar schemas: {e}")
 
 def _register_blueprints(app: Flask, api: Api) -> None:
     # errores globales se registran en Flask

@@ -6,6 +6,7 @@ from app.views.responses import success, created, error
 from app.services.core.context_service import resolve_tenant
 from app.services.auth_service import crear_usuario_en_cliente, listar_usuarios_de_cliente
 from app.views.serializers import usuario_to_dict
+from typing import Optional, Tuple, Dict
 
 bp = Blueprint("usuarios", __name__)
 
@@ -46,16 +47,11 @@ def post_usuarios_en_cliente(cliente_id: int):
         return error("Error no controlado al crear usuario", code="INTERNAL_ERROR", details=str(e), status=500)
 
 
-def get_usuarios_de_cliente(cliente_id: int):
-    """
-    Listar usuarios del cliente.
-    """
-    try:
-        resolve_tenant()
-        if hasattr(g, "cliente_id") and g.cliente_id != cliente_id:
-            return error("X-Client-ID no coincide con cliente_id del path", status=400)
-    except Exception:
-        pass
-
-    users = listar_usuarios_de_cliente(cliente_id=cliente_id)
-    return success([usuario_to_dict(u) for u in users])
+def get_usuarios_de_cliente(
+    cliente_id: int,
+    page: Optional[int],
+    page_size: Optional[int],
+) -> Tuple[Dict, int]:
+    items, meta = listar_usuarios_de_cliente(cliente_id, page, page_size)
+    data = [usuario_to_dict(u) for u in items]
+    return {"data": data, "meta": meta}, 200

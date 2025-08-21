@@ -1,9 +1,10 @@
 # app/services/auth_service.py
-from typing import Optional
+from typing import Optional, Tuple, List, Dict
 from flask import g
 from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.models import Usuario, Membresia, Documento, UserContext
+from app.utils.pagination import paginate_query   
 
 def _cid(explicit: Optional[int]) -> int:
     cid = explicit or getattr(g, "cliente_id", None)
@@ -56,6 +57,16 @@ def crear_usuario_en_cliente(
         db.session.rollback()
         raise ValueError(f"Conflicto de integridad al crear usuario: {e.orig}")
 
-def listar_usuarios_de_cliente(cliente_id: Optional[int] = None) -> list[Usuario]:
-    cid = _cid(cliente_id)
-    return Usuario.query.filter_by(cliente_id=cid).all()
+
+
+def listar_usuarios_de_cliente(
+    cliente_id: int,
+    page: Optional[int],
+    page_size: Optional[int],
+) -> Tuple[list, Optional[Dict]]:
+    q = (Usuario.query
+         .filter_by(cliente_id=cliente_id)
+         .order_by(Usuario.id.desc()))
+    if page is None and page_size is None:
+        return q.all(), None
+    return paginate_query(q, page, page_size)
