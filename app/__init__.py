@@ -5,10 +5,13 @@ from app.config import Config
 from app.extensions import db
 from flask_smorest import Api
 
-def create_app() -> Flask:
+def create_app(config: dict | None = None) -> Flask:
     app = Flask(__name__)
     app.config.from_object(Config)
     app.config.setdefault("JSON_SORT_KEYS", False)
+
+    if config:
+        app.config.update(config)
 
     # OpenAPI / Swagger UI
     app.config.setdefault("API_TITLE", "Liora API")

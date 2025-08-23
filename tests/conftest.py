@@ -1,5 +1,16 @@
 import os, sys, pytest, pathlib
 
+from sqlalchemy.dialects.postgresql import JSONB as PGJSONB, UUID as PGUUID
+from sqlalchemy.ext.compiler import compiles
+
+@compiles(PGJSONB, "sqlite")
+def _compile_jsonb_sqlite(element, compiler, **kw):
+    return "JSON"
+
+@compiles(PGUUID, "sqlite")
+def _compile_uuid_sqlite(element, compiler, **kw):
+    return "CHAR(36)"
+
 # Asegura que el repo root esté en sys.path (tests/ está a 1 nivel)
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
