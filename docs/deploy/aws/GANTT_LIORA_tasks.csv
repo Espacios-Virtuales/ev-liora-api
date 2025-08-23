@@ -1,0 +1,16 @@
+Task,Group,Owner,Start,End,Duration
+Router + persistir slots_json,MVP,Core,2025-08-25,2025-08-26,2
+Seeds demo (Cliente/Usuario/WABA),MVP,Core,2025-08-26,2025-08-26,1
+Policy_service (MVP),MVP,Core,2025-08-27,2025-08-28,2
+Tests mínimos (catalog/bitly/webhook),MVP,QA,2025-08-29,2025-09-02,5
+Docker/compose + healthchecks,MVP,DevOps,2025-09-03,2025-09-04,2
+Piloto 3–5 clientes,MVP,Producto,2025-09-05,2025-09-11,7
+O host Deploy (staging/producción),Vision,DevOps,2025-09-12,2025-09-18,7
+Observabilidad (métricas/alertas/backups),Vision,DevOps,2025-09-12,2025-09-18,7
+CI/CD + escaneo dependencias,Vision,DevOps,2025-09-19,2025-09-23,5
+RBAC/JWT + auditoría,Vision,Core,2025-09-19,2025-09-23,5
+Rate limiting & cost control,Vision,Core,2025-09-24,2025-09-26,3
+Scraper microservicio,Vision,Integrations,2025-09-24,2025-10-08,15
+Agente digital (memoria/tools/auto-eval),Vision,AI,2025-10-09,2025-10-29,21
+Export/Insights + dashboard CTR,Vision,Producto,2025-10-15,2025-10-21,7
+Documentación + runbooks,Vision,OpsDev,2025-10-22,2025-10-25,4
