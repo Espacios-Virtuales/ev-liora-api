@@ -1,0 +1,8 @@
+{
+    "name": "vida_sana",
+    "version": "0.1.0",
+    "intents": ["vida_sana.menu", "vida_sana.tips", "vida_sana.bitacora"],
+    "permissions": [],
+    "limits": {}
+  }
+  

@@ -1,8 +1,7 @@
-import os, sys, pytest, pathlib
+import os, sys, pytest, pathlib,types, sys
 
 from sqlalchemy.dialects.postgresql import JSONB as PGJSONB, UUID as PGUUID
 from sqlalchemy.ext.compiler import compiles
-import types, sys
 
 
 @compiles(PGJSONB, "sqlite")
@@ -57,36 +56,33 @@ def session(app):
 
 
 # ---- Shims para plugins requeridos por el router (solo en tests) ----
+
 def _mk_plugin_module(mod_path: str):
-    # Derivamos un nombre legible del modulo, p.ej. "ecommerce" desde "app.plugins.ecommerce.plugin"
     parts = mod_path.split(".")
     plugin_name = parts[-2] if len(parts) >= 2 else "plugin"
 
     class _P:
-        supported = {"catalogo.ver", "catalogo.buscar", "vida_sana.menu", "reciclaje.menu"}
-        # manifest opcional, por si el registry lo usa
+        supported = {"catalogo.ver","catalogo.buscar","vida_sana.menu","reciclaje.menu"}
         manifest = types.SimpleNamespace(intents=list(supported))
+        # metadata que algunos registries piden:
+        name = plugin_name
+        version = "0.0.0"
 
         def handle(self, intent, message, ctx, deps):
             if intent == "catalogo.buscar":
                 q = (message or "").split(" ", 1)[-1] if " " in (message or "") else ""
-                return {"type": "text", "body": f"Resultados para: {q or '—'}"}
+                return {"type":"text","body":f"Resultados para: {q or '—'}"}
             if intent == "catalogo.ver":
-                return {"type": "text", "body": "Catálogo disponible."}
+                return {"type":"text","body":"Catálogo disponible."}
             if intent.endswith(".menu"):
-                return {"type": "text", "body": f"Menú {intent.split('.')[0]}."}
-            return {"type": "text", "body": "No match."}
+                return {"type":"text","body":f"Menú {intent.split('.')[0]}."}
+            return {"type":"text","body":"No match."}
 
     inst = _P()
-    # Asignamos el nombre tanto a la instancia como a la clase (algunos registries leen uno u otro)
-    inst.name = plugin_name
-    _P.name = plugin_name
-
     mod = types.ModuleType(mod_path)
-    # Cubrimos las 3 variantes comunes que suelen buscar los registries
-    mod.plugin = inst                 # atributo 'plugin'
-    mod.Plugin = lambda: _P()         # fábrica/clase 'Plugin'
-    mod.get_plugin = lambda: inst     # función 'get_plugin()'
+    mod.plugin = inst
+    mod.Plugin = lambda: _P()
+    mod.get_plugin = lambda: inst
     return mod
 
 for path in [

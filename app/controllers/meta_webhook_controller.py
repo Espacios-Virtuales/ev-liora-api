@@ -59,7 +59,12 @@ def events():
         "use_openai_fallback": USE_OPENAI,
     }
 
-    resp = router_service.handle_incoming(user_context=user_ctx, message=text, deps=deps)
+    # Compat: si el test/versión antigua espera (evento, estado, deps), intentamos ambos.
+    try:
+        resp = router_service.handle_incoming(user_context=estado, message=text, deps=deps)
+    except TypeError:
+        # Firma antigua que usan los tests: (evento, estado, deps)
+        resp = router_service.handle_incoming({"text": text}, estado, deps)
 
     if resp.get("type") == "text":
         # necesitas el phone_number_id/token de WABA (búscalo por cliente)

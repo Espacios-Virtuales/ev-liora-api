@@ -1,0 +1,8 @@
+{
+    "name": "reciclaje",
+    "version": "0.1.0",
+    "intents": ["reciclaje.menu", "reciclaje.puntos", "reciclaje.separar"],
+    "permissions": [],
+    "limits": {}
+  }
+  

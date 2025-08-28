@@ -12,7 +12,7 @@ from app.controllers.clientes_controller import post_clientes, get_cliente
 from app.controllers.usuarios_controller import post_usuarios_en_cliente, get_usuarios_de_cliente as ctrl_get_usuarios
 from app.controllers.membresia_controller import registrar_membresia, obtener_membresias
 from app.controllers.documento_controller import registrar_documento, obtener_documentos
-from app.controllers.meta_webhook_controller import verify as meta_verify, events as meta_events
+#  from app.controllers.meta_webhook_controller import verify as meta_verify, events as meta_events
 from app.controllers.waba_controller import (
     post_waba, get_waba_list, get_waba_detail, patch_waba, delete_waba,
     attach_cliente_waba, detach_cliente_waba
@@ -25,6 +25,15 @@ from app.views.responses import success, error
 
 # 🔹 CAMBIO: smorest.Blueprint
 api_v1 = Blueprint("api_v1", __name__, url_prefix="/api/v1", description="API pública v1")
+
+
+# ----------------------
+# Estado
+# ----------------------
+@api_v1.route("/health", methods=["GET"])
+def api_health_proxy():
+    # Envelope estándar: {"ok": true, "data": {...}}
+    return success({"service": "liora-api"})
 
 # ----------------------
 # Clientes
@@ -41,6 +50,33 @@ def api_post_clientes():
 def api_get_cliente(cliente_id: int):
     """Obtener cliente por id"""
     return get_cliente(cliente_id)
+
+@api_v1.route("/clientes/<cliente_id>/catalog/publish", methods=["POST"])
+def api_catalog_publish(cliente_id):
+    from flask import request, g
+    from app.services.catalog_service import publish_snapshot, activate_snapshot
+    import csv, io
+
+    f = request.files.get("file")
+    if f:
+        data = f.read()
+    elif request.data:
+        data = request.data
+    else:
+        raw = request.form.get("file")
+        data = raw.encode("utf-8") if raw else b""
+    if not data:
+        return {"error": "file requerido"}, 400
+    try:
+        rows = list(csv.DictReader(io.StringIO(data.decode("utf-8"))))
+    except Exception:
+        return {"error": "CSV inválido"}, 400
+
+    g.cliente_id = cliente_id  # hasta tener resolver de tenant real
+
+    snap = publish_snapshot(rows=rows, source="upload")
+    activate_snapshot(version=snap.version)
+    return {"ok": True, "version": snap.version}, 201
 
 # ----------------------
 # Usuarios (scoped por cliente)
@@ -155,13 +191,15 @@ def api_detach_cliente_waba(cliente_id: int):
 # Webhook Meta (renombrado desde wsp_controller)
 # ----------------------
 @api_v1.route("/webhook/meta", methods=["GET"])
-@api_v1.response(200, description="Verificación webhook (challenge)")
+#@api_v1.response(200, description="Verificación webhook (challenge)")
 def api_webhook_meta_verify():
     """Responder hub.challenge de Meta"""
-    return meta_verify()
+    from app.controllers import meta_webhook_controller as mwc
+    return mwc.verify()
 
 @api_v1.route("/webhook/meta", methods=["POST"])
-@api_v1.response(200, description="Evento de webhook recibido")
+#@api_v1.response(200, description="Evento de webhook recibido")
 def api_webhook_meta_events():
     """Eventos entrantes desde Meta (WhatsApp Cloud API)"""
-    return meta_events()
+    from app.controllers import meta_webhook_controller as mwc
+    return mwc.events()
