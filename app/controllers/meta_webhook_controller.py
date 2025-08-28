@@ -49,8 +49,8 @@ def events():
         # fallback de demo: cliente único
         g.cliente_id = os.getenv("DEMO_CLIENTE_ID")
 
-    estado = {"cliente_id": g.cliente_id, "user_msisdn": user_msisdn}
-    evento = {"text": text}
+    user_ctx = {"cliente_id": g.cliente_id, "user_msisdn": user_msisdn}
+
 
     deps = {
         "catalog_service": __import__("app.services.catalog_service", fromlist=["dummy"]),  # o instancia real
@@ -59,7 +59,7 @@ def events():
         "use_openai_fallback": USE_OPENAI,
     }
 
-    resp = router_service.handle_incoming(evento=evento, estado=estado, deps=deps)
+    resp = router_service.handle_incoming(user_context=user_ctx, message=text, deps=deps)
 
     if resp.get("type") == "text":
         # necesitas el phone_number_id/token de WABA (búscalo por cliente)

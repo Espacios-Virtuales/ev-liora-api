@@ -7,6 +7,9 @@ from app.extensions import db
 from app.models.cliente import Cliente
 from app.models.catalog_active import CatalogActive
 from app.models.catalog_snapshot import CatalogSnapshot
+from tests.factories import seed_cliente
+
+
 
 from app.services.catalog_service import (
     publish_snapshot,
@@ -31,11 +34,7 @@ INVALID_ROWS = [
 
 
 def _seed_cliente(app):
-    with app.app_context():
-        c = Cliente(id=uuid.uuid4(), nombre="Demo", slug="demo")
-        db.session.add(c); db.session.commit()
-        return c
-
+    return seed_cliente(app)  # ya trae slug único
 
 # ---------- Tests ----------
 def test_publish_activate_and_summary(app):
