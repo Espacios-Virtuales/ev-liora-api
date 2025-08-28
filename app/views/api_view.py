@@ -2,6 +2,7 @@
 from __future__ import annotations
 from flask_smorest import Blueprint
 from flask import request
+from flask import jsonify 
 
 # Mantén tus helpers si quieres usarlos en controladores
 from .responses import success, created, error  # opcional
@@ -32,8 +33,7 @@ api_v1 = Blueprint("api_v1", __name__, url_prefix="/api/v1", description="API p�
 # ----------------------
 @api_v1.route("/health", methods=["GET"])
 def api_health_proxy():
-    # Envelope estándar: {"ok": true, "data": {...}}
-    return success({"service": "liora-api"})
+    return jsonify({"ok": True, "data": {"service": "liora-api"}}), 200
 
 # ----------------------
 # Clientes

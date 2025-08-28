@@ -7,6 +7,23 @@ from app.models.cliente import Cliente
 def make_cliente(slug="demo", nombre="Cliente Demo", **extra):
     return Cliente(slug=slug, nombre=nombre, **extra)
 
+# ---------- Tests base del modelo ----------
+def test_cliente_creacion_minima(session):
+    c = make_cliente()
+    session.add(c)
+    session.commit()
+
+    assert c.id is not None
+    assert c.slug == "demo"
+    assert c.nombre == "Cliente Demo"
+    # default estado
+    assert c.estado == "activo"
+    # timestamps server_default
+    assert c.created_at is not None
+    assert c.updated_at is not None
+    # __repr__
+    r = repr(c)
+    assert "<Cliente" in r and ("demo" in r or "Cliente Demo" in r)
 
 def test_cliente_slug_unico(session):
     c1 = make_cliente(slug="andina")

@@ -1,11 +1,11 @@
-# tests/factories.py (o tu helper)
+# tests/factories.py
 import uuid
 from app.extensions import db
 from app.models.cliente import Cliente
 
-def seed_cliente(app, slug=None) -> Cliente:
-    """Crea y devuelve el objeto Cliente (con expire_on_commit=False no se expira)."""
+def seed_cliente(app) -> str:
     with app.app_context():
-        c = Cliente(id=uuid.uuid4(), nombre="Demo", slug=slug or f"demo-{uuid.uuid4().hex[:8]}")
-        db.session.add(c); db.session.commit()
-        return c
+        c = Cliente(id=uuid.uuid4(), nombre="Demo", slug=f"demo-{uuid.uuid4().hex[:8]}")
+        db.session.add(c)
+        db.session.commit()
+        return str(c.id)  # DEVUELVE EL ID, NO LA INSTANCIA

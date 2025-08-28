@@ -38,11 +38,10 @@ def _seed_cliente(app):
 
 # ---------- Tests ----------
 def test_publish_activate_and_summary(app):
-    c = _seed_cliente(app)
+    cliente_id = _seed_cliente(app) 
 
-    # Usamos request_context para que _cid tome g.cliente_id si no pasamos explícito
     with app.test_request_context("/"):
-        g.cliente_id = c.id
+        g.cliente_id = cliente_id
 
         # 1) Publicar snapshot
         snap = publish_snapshot(rows=VALID_ROWS, source="test")
