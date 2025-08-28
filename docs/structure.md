@@ -1,102 +1,105 @@
-# 📂 Estructura del Proyecto
+
+# 📂 Estructura del Proyecto — Liora (Core + Plugins)
+
+Esta estructura refleja la migración a **plugins** independientes por capacidad, con contrato y registro centralizados.
 
 ```
 ev-liora-api/
-├─ app/                                   # Flask app (núcleo Liora)
-│  ├─ __init__.py
+├─ app/
 │  ├─ config.py
-│  ├─ extensions.py                       # db + naming conventions, init
-│  ├─ views/
-│  │  ├─ api_view.py
-│  │  └─ whatsapp_view.py
-│  ├─ controllers/                        # HTTP surface (sin lógica de negocio)
+│  ├─ extensions.py
+│  ├─ models/
+│  │  ├─ cliente.py
+│  │  ├─ usuario.py
+│  │  ├─ user_context.py
+│  │  ├─ client_context.py
+│  │  ├─ waba_account.py
+│  │  ├─ convo_state.py
+│  │  ├─ conversation_log.py
+│  │  ├─ catalog_active.py
+│  │  ├─ catalog_snapshot.py
+│  │  └─ ingest_log.py
+│  ├─ services/
+│  │  ├─ core/
+│  │  │  ├─ context_service.py
+│  │  │  ├─ router_service.py
+│  │  │  ├─ policy_service.py
+│  │  │  ├─ plugin_contracts.py      # NUEVO
+│  │  │  ├─ plugin_registry.py       # NUEVO
+│  │  │  └─ security.py
+│  │  ├─ integrations/
+│  │  │  ├─ whatsapp_service.py
+│  │  │  ├─ bitly_service.py
+│  │  │  └─ nlp_service.py
+│  │  └─ catalog_service.py
+│  ├─ plugins/                        # NUEVO: plugins internos (antes skills)
+│  │  ├─ ecommerce/
+│  │  │  ├─ plugin.py
+│  │  │  └─ manifest.json
+│  │  ├─ vida_sana/
+│  │  │  ├─ plugin.py
+│  │  │  └─ manifest.json
+│  │  └─ reciclaje/
+│  │     ├─ plugin.py
+│  │     └─ manifest.json
+│  ├─ controllers/
 │  │  ├─ auth_controller.py
 │  │  ├─ clientes_controller.py
 │  │  ├─ usuarios_controller.py
 │  │  ├─ waba_controller.py
 │  │  ├─ meta_webhook_controller.py
 │  │  └─ catalog_controller.py
-│  ├─ services/
-│  │  ├─ core/                            # núcleo
-│  │  │  ├─ context_service.py
-│  │  │  ├─ router_service.py
-│  │  │  ├─ policy_service.py
-│  │  │  └─ security.py
-│  │  ├─ skills/                          # capacidades (activadas por router)
-│  │  │  ├─ ecommerce_skill.py
-│  │  │  ├─ vida_sana_skill.py
-│  │  │  └─ reciclaje_skill.py
-│  │  ├─ integrations/                    # providers externos
-│  │  │  ├─ whatsapp_service.py           # Meta Cloud API
-│  │  │  ├─ bitly_service.py
-│  │  │  └─ nlp_service.py                # opcional (fallback GPT-mini)
-│  │  └─ catalog_service.py               # dominio catálogo (publish/activate)
-│  └─ models/                             # SQLAlchemy (UUID/JSONB, índices)
-│     ├─ cliente.py
-│     ├─ usuario.py
-│     ├─ user_context.py                  # 1:1 con Usuario (scope por cliente_id)
-│     ├─ client_context.py                # 1:1 con Cliente (políticas/branding)
-│     ├─ waba_account.py
-│     ├─ convo_state.py
-│     ├─ conversation_log.py
-│     ├─ catalog_active.py
-│     ├─ catalog_snapshot.py
-│     ├─ ingest_log.py
-│     ├─ membresia.py
-│     └─ documento.py
+│  └─ views/
+│     ├─ api_view.py
+│     └─ whatsapp_view.py
 │
-├─ apps_external/                         # Apps/microservicios fuera del core API
-│  ├─ scraper/                            # (futuro) extracción catálogos
+├─ apps_external/                     # plugins externos (microservicios)
+│  ├─ scraper/
 │  │  ├─ README.md
-│  │  ├─ requirements.txt
 │  │  └─ src/...
-│  └─ vida_sana_agent/                    # (futuro) agente Vida Sana (vector/IA)
+│  └─ vida_sana_agent/
 │     ├─ README.md
 │     └─ src/...
 │
-├─ scripts/                               # utilidades locales/ci (no librería)
-│  ├─ seed_demo.py                        # crea cliente demo + usuario + waba (mock)
-│  ├─ gen_mermaid_from_db.py              # ER/diagramas a docs (si aplica)
-│  ├─ export_logs.py                      # export convers./ingesta a CSV/JSON
-│  └─ check_health.py                     # verificación simple /health
-│
-├─ migrations/                            # Alembic (DB schema & seeds)
+├─ migrations/                        # Alembic
 │  ├─ env.py
 │  ├─ script.py.mako
 │  └─ versions/
-│     ├─ f07744c1193c_init_uuid_jsonb.py  # baseline UUID/JSONB ✅
+│     ├─ f07744c1193c_init_uuid_jsonb.py
 │     └─ <yyyyMMddhhmm>_add_user_client_ctx.py
 │
-├─ tests/                                 # Pytest (unit + functional + integração)
-│  ├─ conftest.py
+├─ scripts/
+│  ├─ seed_demo.py
+│  ├─ export_logs.py
+│  └─ check_health.py
+│
+├─ tests/
 │  ├─ unit/
-│  │  ├─ test_catalog_service.py
-│  │  ├─ test_bitly_service.py
-│  │  ├─ test_context_service.py
-│  │  └─ test_meta_verify.py
 │  ├─ functional/
-│  │  ├─ test_webhook_flow.py             # /webhook/meta (GET/POST + router)
-│  │  └─ test_catalog_publish_flow.py     # CSV → Snapshot → Active
 │  └─ integration/
-│     └─ test_whatsapp_send_mock.py
 │
-├─ docs/                                  # documentación pública del repo
-│  ├─ structure.md                        # ← ESTE DOCUMENTO
+├─ docs/
+│  ├─ structure.md                    # ← este documento
+│  ├─ modules/
+│  │  └─ plugins.md                   # guía completa de plugins
 │  ├─ diagrams/
-│  │  ├─ vision.md                        # arquitectura alta【56】
-│  │  ├─ flow.md                          # secuencia conversación/ingesta【57】
-│  │  └─ models.md                        # ER simplificado【58】
-│  ├─ debug/
-│  │  ├─ checklist.md                     # estado y métricas de avance【63】
-│  │  └─ DEBUG_GENERAL.md                 # bitácora unificada【62】
-│  └─ modules/
-│     └─ skills.md                        # descripción de skills【55】
+│  │  ├─ flow.md
+│  │  ├─ models.md
+│  │  └─ vision.md
+│  └─ debug/
+│     ├─ DEBUG_GENERAL.md
+│     └─ checklist.md
 │
-├─ .env.example                           # variables base (dev/staging/prod)
-├─ docker-compose.yml                     # dev stack (web + db)
-├─ Dockerfile                             # imagen de la API
+├─ .env.example
+├─ docker-compose.yml
+├─ Dockerfile
 ├─ requirements.txt
 ├─ main.py
-└─ README.md                              # índice de docs y cómo correr【59】
-
+└─ README.md
 ```
+
+## Principios
+- **Plugins** no acceden directo a la DB → usan servicios del Core con *scope* por `cliente_id`.
+- **Contrato + Registry**: `plugin_contracts.py` define la interfaz y `plugin_registry.py` registra/carga.
+- **Políticas/Flags**: `policy_service` + `ClientContext.features` habilitan o limitan plugins por plan.
+- **Observabilidad**: logs/CTR por plugin + versión (desde manifest).

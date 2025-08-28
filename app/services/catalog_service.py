@@ -33,19 +33,18 @@ def _normalize_rows(rows: Iterable[Dict[str, Any]]) -> Tuple[list[Dict[str, Any]
         norm.append({str(k): v for k, v in r.items() if k is not None})
     return norm, len(norm)
 
-def _checksum(obj: Any) -> str:
-    """
-    Checksum determinístico (sha256) del objeto JSON.
-    """
-    dumped = json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+def _checksum_rows(rows: list[dict]) -> str:
+    ordered = [{k: r.get(k) for k in sorted(r.keys())} for r in rows]
+    dumped = json.dumps(ordered, ensure_ascii=False, separators=(",", ":"))
     return hashlib.sha256(dumped.encode("utf-8")).hexdigest()
+
 
 # -----------------------------------------------------------
 # Validación de schema
 # -----------------------------------------------------------
 
-_REQUIRED_COLS = {"id", "titulo"}   # ajusta a tu realidad (sku, price, stock, etc.)
-_OPTIONAL_COLS = {"descripcion", "precio", "stock", "url", "img"}
+_REQUIRED_COLS = {"sku", "name", "url"}  # mínimas
+_OPTIONAL_COLS = {"price", "stock", "color", "size", "img", "descripcion"}
 
 def validate_snapshot_rows(rows: Iterable[Dict[str, Any]]) -> Dict[str, Any]:
     """
@@ -83,21 +82,13 @@ def publish_snapshot(
     rows_list, rows_count = _normalize_rows(rows)
     val = validate_snapshot_rows(rows_list)
     if not val["valid"]:
-        raise ValueError(f"Snapshot inválido: faltan columnas en {len(val['problems'])} filas.")
+        raise ValueError(...)
 
-    # Versión: si no viene, usamos (max(version)+1)
     if version is None:
         last = db.session.query(db.func.max(CatalogSnapshot.version)).filter_by(cliente_id=cid).scalar()
         version = int(last or 0) + 1
 
-    payload = {
-        "version": version,
-        "rows_count": rows_count,
-        "source": source,
-        "meta": extra_meta or {},
-        "rows": rows_list,  # si tu modelo NO guarda filas en JSON, omite esto
-    }
-    chksum = _checksum(payload)
+    chksum = _checksum_rows(rows_list)
 
     snap = CatalogSnapshot(
         cliente_id=cid,
@@ -105,11 +96,8 @@ def publish_snapshot(
         rows_count=rows_count,
         source=source,
         checksum=chksum,
-        # Si tu modelo tiene campos JSON:
-        # payload_json=payload,
-        # o guarda sólo meta mínima si las filas van a otra tabla
+        payload_json={"rows": rows_list}  # ⇦ si tu modelo tiene este campo JSONB
     )
-
     try:
         db.session.add(snap)
         db.session.commit()
@@ -158,7 +146,7 @@ def activate_snapshot(
         raise ValueError(f"Conflicto al activar snapshot: {e.orig}")
 
 # -----------------------------------------------------------
-# Lecturas
+# Accion
 # -----------------------------------------------------------
 
 def get_active(cliente_id: Optional[int] = None) -> Optional[CatalogActive]:
@@ -174,3 +162,29 @@ def list_snapshots(cliente_id: Optional[int] = None, limit: int = 50) -> list[Ca
         .limit(limit)
         .all()
     )
+
+def get_active_summary(cliente_id: Optional[str] = None, limit: int = 5) -> list[dict]:
+    cid = _cid(cliente_id)
+    active = CatalogActive.query.filter_by(cliente_id=cid).first()
+    if not active:
+        return []
+    # si guardaste rows dentro del snapshot, recupéralos:
+    snap = CatalogSnapshot.query.filter_by(cliente_id=cid, version=active.version).first()
+    rows = (snap.payload_json or {}).get("rows", []) if snap else []
+    return rows[:limit]
+
+def search_active(cliente_id: Optional[str], q: str, limit: int = 5) -> list[dict]:
+    q = (q or "").strip().lower()
+    if not q:
+        return get_active_summary(cliente_id, limit)
+    rows = get_active_summary(cliente_id, 10_000)  # naïve; optimiza con índice si materializas tabla
+    out = []
+    for r in rows:
+        name = str(r.get("name","")).lower()
+        sku = str(r.get("sku","")).lower()
+        if q in name or q in sku:
+            out.append(r)
+            if len(out) >= limit:
+                break
+    return out
+

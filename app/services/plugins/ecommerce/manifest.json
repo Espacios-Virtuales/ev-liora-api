@@ -1,0 +1,8 @@
+{
+    "name": "ecommerce",
+    "version": "0.1.0",
+    "intents": ["catalogo.ver", "catalogo.buscar"],
+    "permissions": ["catalog.read", "bitly.shorten"],
+    "limits": { "max_links": 5 }
+  }
+  
