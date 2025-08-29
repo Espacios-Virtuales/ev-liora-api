@@ -33,34 +33,15 @@ def _infer_intent(text: str) -> str:
     if t.startswith("reciclaje"):              return "reciclaje.menu"
     return "no_match"
 
-def handle_incoming(*args, **kwargs) -> Dict[str, Any]:
-    """
-    Soporta dos firmas:
-      1) handle_incoming(evento, estado, deps)            # tests / controller
-      2) handle_incoming(user_context, message, deps)     # firma nueva
-    """
-    if "evento" in kwargs or "estado" in kwargs:
-        evento = kwargs.get("evento") or (args[0] if len(args) > 0 else {}) or {}
-        estado = kwargs.get("estado") or (args[1] if len(args) > 1 else {}) or {}
-        deps   = kwargs.get("deps")   or (args[2] if len(args) > 2 else {}) or {}
-        message = (evento or {}).get("text") or kwargs.get("message") or ""
-        user_context = estado
-    else:
-        # firma nueva
-        user_context = args[0] if len(args) > 0 else kwargs.get("user_context") or {}
-        message      = args[1] if len(args) > 1 else kwargs.get("message") or ""
-        deps         = args[2] if len(args) > 2 else kwargs.get("deps") or {}
+def handle_incoming(user_context: Dict[str, Any], message: str, deps: Dict[str, Any]) -> Dict[str, Any]:
+    registry = _ensure_registry()
 
-    # ... a partir de aquí queda tu lógica actual:
     intent = _infer_intent(message)
     if intent == "no_match":
-        try:
-            det = nlp_service.detect_intent(message or "")
-            intent = det.get("intent", "no_match")
-        except Exception:
-            pass
+        det = nlp_service.detect_intent(message or "")
+        intent = det.get("intent", "no_match")
 
-    candidates = _registry.find_for_intent(intent)
+    candidates = registry.find_for_intent(intent)
     if not candidates:
         if deps.get("use_openai_fallback") and deps.get("nlp_service"):
             body = deps["nlp_service"].reply(message, user_context)
@@ -69,4 +50,3 @@ def handle_incoming(*args, **kwargs) -> Dict[str, Any]:
 
     plugin = candidates[0]
     return plugin.handle(intent=intent, message=message, ctx=user_context, deps=deps)
-
