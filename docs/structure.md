@@ -53,6 +53,14 @@ ev-liora-api/
 │     ├─ api_view.py
 │     └─ whatsapp_view.py
 │
+├─ apps_external/                     # plugins externos (microservicios)
+│  ├─ scraper/
+│  │  ├─ README.md
+│  │  └─ src/...
+│  └─ vida_sana_agent/
+│     ├─ README.md
+│     └─ src/...
+│
 ├─ migrations/                        # Alembic
 │  ├─ env.py
 │  ├─ script.py.mako
