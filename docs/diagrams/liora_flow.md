@@ -10,9 +10,9 @@ sequenceDiagram
   participant Ctx as Context Engine
   participant St as ConvoState
   participant Rt as Router
-  participant E as Ecommerce Skill
-  participant V as Vida Sana Skill
-  participant R as Reciclaje Skill
+  participant E as Ecommerce Plugin
+  participant V as Vida Sana Plugin
+  participant R as Reciclaje Plugin
   participant W as whatsapp_service
   participant Cat as catalog_service
   participant DB as DB
@@ -51,3 +51,12 @@ sequenceDiagram
   Cat->>DB: CatalogSnapshot + IngestLog + CatalogActive
   Cat-->>Core: OK
   Core-->>Ext: 200
+```
+
+## Notas de flujo
+
+**Q&A desde CSV (Drive)**  
+1) Cliente realiza request HTTP a `chat_controller.responder_pregunta`.  
+2) Controlador usa `drive_csv_service` para cargar CSV (fileId/URL o carpeta+archivo).  
+3) Transforma filas → `EntradaChat` y llama `find_answer`.  
+4) Devuelve respuesta JSON; registra evento en `ConversationLog` (si aplica).

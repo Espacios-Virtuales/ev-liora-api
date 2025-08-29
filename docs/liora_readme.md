@@ -1,6 +1,6 @@
 # 🌐 EV-Liora-API
 
-**EV-Liora-API** es una API desarrollada con Flask que integra gestión de usuarios, membresías y documentos, además de enrutar mensajes hacia *Skills* (Ecommerce, Vida Sana, Reciclaje y Código).  
+**EV-Liora-API** es una API desarrollada con Flask que integra gestión de usuarios, membresías y documentos, además de enrutar mensajes hacia *Plugins* (Ecommerce, Vida Sana, Reciclaje y Código).  
 Forma parte del ecosistema [Espacios Virtuales](https://espaciosvirtuales.lat), enfocado en soluciones digitales conscientes.
 
 ---
@@ -87,22 +87,14 @@ La documentación detallada está en [`docs/`](docs/):
 
 ---
 
-## 🔧 Configuración Google Sheets
-
-1. Crear credenciales en [Google Cloud Console](https://console.cloud.google.com/).  
-2. Guardar archivo `credenciales.json` en la raíz.  
-3. Compartir el documento con el correo de la cuenta de servicio.  
-
----
-
 ## 📌 Estado del Proyecto
 
 - [ ] Base Flask multi-tenant (usuarios, clientes, waba account).  
 - [ ] Webhook Meta integrado.  
-- [ ] Skill Ecommerce (catálogo + Bitly).  
-- [ ] Skill Vida Sana.  
-- [ ] Skill Reciclaje (Enraiza).  
-- [ ] Skill Código (interno).  
+- [ ] Plugin Ecommerce (catálogo + Bitly).  
+- [ ] Plugin Vida Sana.  
+- [ ] Plugin Reciclaje (Enraiza).  
+- [ ] Plugin Código (interno).  
 
 👉 Detalle: [Checklist de desarrollo](docs/debug/checklist.md)
 

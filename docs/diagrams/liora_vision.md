@@ -20,10 +20,10 @@ graph TD
   LCore --> Policy
   LCore --> Obs
 
-  Router -->|elige skill| SK_Ecomm["Skill: Ecommerce"]
-  Router -->|elige skill| SK_Vida["Skill: Vida Sana"]
-  Router -->|elige skill| SK_Rec["Skill: Reciclaje (Enraiza)"]
-  Router -->|elige skill| SK_Code["Skill: Código (interno/futuro)"]
+  Router -->|elige plugin| PL_Ecomm["Plugin: Ecommerce"]
+  Router -->|elige plugin| PL_Vida["Plugin: Vida Sana"]
+  Router -->|elige plugin| PL_Rec["Plugin: Reciclaje (Enraiza)"]
+  Router -->|elige plugin| PL_Code["Plugin: Código (interno/futuro)"]
 
   subgraph Services["Servicios internos"]
     WSvc[[whatsapp_service]]
@@ -35,24 +35,23 @@ graph TD
   LCore --> Bitly
   LCore --> CatSvc
 
-  SK_Ecomm --> CatSvc
-  SK_Ecomm --> Bitly
-  SK_Ecomm --> WSvc
+  PL_Ecomm --> CatSvc
+  PL_Ecomm --> Bitly
+  PL_Ecomm --> WSvc
 
-  SK_Vida --> WSvc
-  SK_Rec --> WSvc
-  SK_Code -. uso interno .-> WSvc
+  PL_Vida --> WSvc
+  PL_Rec --> WSvc
+  PL_Code -. uso interno .-> WSvc
 
   subgraph Ext["Servicios externos opcionales"]
     Scraper[(Scraping Service)]
     VidaAPI[(Agente Vida Sana API)]
   end
 
-  %% ✅ Evitamos label en la arista: nodo intermedio con el endpoint
   Endpoint["/clientes/{id}/catalog/publish"]
   Scraper --> Endpoint --> LCore
 
-  SK_Vida --> VidaAPI
+  PL_Vida --> VidaAPI
 
   subgraph DB["DB Multi-tenant"]
     Cliente[(Cliente)]
@@ -71,3 +70,4 @@ graph TD
   CatSvc --> CSnap
   CatSvc --> Ingest
   WSvc --> CLog
+```
